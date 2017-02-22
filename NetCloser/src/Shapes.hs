@@ -12,6 +12,9 @@ data Point = P (Int, Int)
 data Rect = R Point Point
   deriving Show
 
+origin = P (0, 0)
+dummyR = R origin origin
+
 newtype Layer = Layer ByteString
   deriving Show
 data Shape = Shape Layer Rect

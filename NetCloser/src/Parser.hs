@@ -9,15 +9,23 @@ import Data.Word
 import Data.ByteString
 
 
+import Debug.Trace
+
+debugParser = do
+  r <- takeByteString
+  traceShow r $ return ()
+
+isAlphaNum c = isAlpha_ascii c || isDigit c
+--isAlphaNum = (||) <$> isAlpha_ascii <*> isDigit
 
 identifier :: Parser ByteString
 identifier = do
-  i <- AP.takeWhile isAlpha_ascii
+  i <- AP.takeWhile isAlphaNum
   ws
   return i
 
 ws :: Parser ()
-ws = many' (satisfy isSpace) >> return ()
+ws = skipSpace
 
 point :: Parser Point
 point = do
@@ -37,9 +45,7 @@ point = do
 rect :: Parser Rect
 rect = do
   p1 <- point
-  ws
   p2 <- point
-  ws
   return $ R p1 p2
 
 pintDecl :: ByteString -> Parser Int
@@ -49,7 +55,7 @@ pintDecl s = do
   char '='
   ws
   d <- decimal
-  endOfLine
+  ws
   return d
 
 pBoundary :: Parser Rect
@@ -59,15 +65,14 @@ pBoundary = do
   char '='
   ws
   r <- rect
-  endOfLine
   return r
 
 pRoutedShape :: Parser Shape
 pRoutedShape = do
   string "RoutedShape"
+  ws
   l <- identifier
   r <- rect
-  endOfLine
   return $ Shape (Layer l) r
 
 pRoutedVia :: Parser Via
@@ -76,7 +81,6 @@ pRoutedVia = do
   ws
   l <- identifier
   p <- point
-  endOfLine
   return $ Via (Layer l) p
 
 pObstacle :: Parser Obstacle
@@ -85,39 +89,13 @@ pObstacle = do
   ws
   l <- identifier
   r <- rect
-  endOfLine
   return $ Obstacle (Layer l) r
 
-
-
- {-
-ViaCost = 20
-Spacing = 5
-Boundary = (0,0) (1000,1000)
-#MetalLayers = 2
-#RoutedShapes = 7
-#RoutedVias = 1
-#Obstacles = 3
-RoutedShape M1 (50,100) (250,150)
-RoutedShape M1 (600,20) (750,140)
-RoutedShape M1 (50,850) (250,900)
-RoutedShape M1 (10,800) (500,995)
-RoutedShape M2 (75,20) (200,750)
-RoutedShape M2 (375,100) (575,600)
-RoutedShape M2 (475,20) (670,450)
-RoutedVia V1 (175,125)
-Obstacle M1 (350,300) (650,750)
-Obstacle M1 (50,350) (650,650)
-Obstacle M2 (350,700) (950,800)
-  -}
-
-parseProblem :: Parser Int --Problem
+parseProblem :: Parser Problem
 parseProblem = do
   vc <- pintDecl "ViaCost"
   sp <- pintDecl "Spacing"
   b <-  pBoundary
-  return 1
-    {-
   mls <- pintDecl "#MetalLayers"
   rss <- pintDecl "#RoutedShapes"
   rvs <- pintDecl "#RoutedVias"
@@ -134,7 +112,3 @@ parseProblem = do
     , routedShapes = shapes
     , routedVias = rvias
     , obstacles = obsts }
-
-     -}
-
-
