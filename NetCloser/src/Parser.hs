@@ -7,6 +7,7 @@ import Shapes
 import Data.Attoparsec.ByteString.Char8 as AP
 import Data.Word
 import Data.ByteString
+import Data.Map as M
 
 
 import Debug.Trace
@@ -18,11 +19,21 @@ debugParser = do
 isAlphaNum c = isAlpha_ascii c || isDigit c
 --isAlphaNum = (||) <$> isAlpha_ascii <*> isDigit
 
-identifier :: Parser ByteString
-identifier = do
-  i <- AP.takeWhile isAlphaNum
+
+metalLayerN :: Parser LayerN
+metalLayerN = do
+  char 'M'
+  n <- decimal
   ws
-  return i
+  return $ LayerN n
+
+viaLayerN :: Parser LayerN
+viaLayerN = do
+  char 'V'
+  n <- decimal
+  ws
+  return $ LayerN n
+
 
 ws :: Parser ()
 ws = skipSpace
@@ -67,29 +78,29 @@ pBoundary = do
   r <- rect
   return r
 
-pRoutedShape :: Parser Shape
+pRoutedShape :: Parser (LayerN, [Shape])
 pRoutedShape = do
   string "RoutedShape"
   ws
-  l <- identifier
+  l <- metalLayerN
   r <- rect
-  return $ Shape (Layer l) r
+  return (l, [Shape r])
 
-pRoutedVia :: Parser Via
+pRoutedVia :: Parser (LayerN, [Via])
 pRoutedVia = do
   string "RoutedVia"
   ws
-  l <- identifier
+  l <- viaLayerN
   p <- point
-  return $ Via (Layer l) p
+  return (l, [Via p])
 
-pObstacle :: Parser Obstacle
+pObstacle :: Parser (LayerN, [Obstacle])
 pObstacle = do
   string "Obstacle"
   ws
-  l <- identifier
+  l <- metalLayerN
   r <- rect
-  return $ Obstacle (Layer l) r
+  return (l, [Obstacle r])
 
 parseProblem :: Parser Problem
 parseProblem = do
@@ -100,15 +111,16 @@ parseProblem = do
   rss <- pintDecl "#RoutedShapes"
   rvs <- pintDecl "#RoutedVias"
   os <- pintDecl "#Obstacles"
-  shapes <- many' pRoutedShape
-  rvias <- many' pRoutedVia
-  obsts <- many' pObstacle
+  shapes <- mkMap <$> many' pRoutedShape
+  rvias <- mkMap <$> many' pRoutedVia
+  obsts <- mkMap <$> many' pObstacle
   endOfInput
   return $ Problem
     { viaCost = vc
     , spacing = sp
     , boundary = b
-    , layers = mls
+    , metalLayers = mls
     , routedShapes = shapes
     , routedVias = rvias
     , obstacles = obsts }
+  where mkMap = M.fromListWith (++)
