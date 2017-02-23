@@ -78,29 +78,29 @@ pBoundary = do
   r <- rect
   return r
 
-pRoutedShape :: Parser (LayerN, [Shape])
+pRoutedShape :: Parser (LayerN, Shape)
 pRoutedShape = do
   string "RoutedShape"
   ws
   l <- metalLayerN
   r <- rect
-  return (l, [Shape r])
+  return (l, Shape r)
 
-pRoutedVia :: Parser (LayerN, [Via])
+pRoutedVia :: Parser (LayerN, Shape)
 pRoutedVia = do
   string "RoutedVia"
   ws
   l <- viaLayerN
   p <- point
-  return (l, [Via p])
+  return (l, Via p)
 
-pObstacle :: Parser (LayerN, [Obstacle])
+pObstacle :: Parser (LayerN, Shape)
 pObstacle = do
   string "Obstacle"
   ws
   l <- metalLayerN
   r <- rect
-  return (l, [Obstacle r])
+  return (l, Obstacle r)
 
 parseProblem :: Parser Problem
 parseProblem = do
@@ -111,16 +111,15 @@ parseProblem = do
   rss <- pintDecl "#RoutedShapes"
   rvs <- pintDecl "#RoutedVias"
   os <- pintDecl "#Obstacles"
-  shapes <- mkMap <$> many' pRoutedShape
-  rvias <- mkMap <$> many' pRoutedVia
-  obsts <- mkMap <$> many' pObstacle
+  shapes <- many' pRoutedShape
+  rvias <- many' pRoutedVia
+  obsts <- many' pObstacle
   endOfInput
   return $ Problem
     { viaCost = vc
     , spacing = sp
     , boundary = b
     , metalLayers = mls
-    , routedShapes = shapes
-    , routedVias = rvias
-    , obstacles = obsts }
-  where mkMap = M.fromListWith (++)
+    , pvias = rvias
+    , pelements = shapes ++ obsts }
+

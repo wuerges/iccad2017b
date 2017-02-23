@@ -3,9 +3,10 @@
 module Shapes where
 
 
-import Data.Map as M
 import Data.ByteString
 import Data.List as L
+import Control.Arrow
+import Data.Maybe
 
 -- Data types for input
 
@@ -20,47 +21,51 @@ dummyR = R origin origin
 newtype LayerN = LayerN Int
   deriving (Eq, Ord, Show)
 
-newtype Shape = Shape Rect
-  deriving Show
-
-data Via = Via Point
-  deriving Show
-
-data Obstacle = Obstacle Rect
-  deriving Show
-
-data Layer = Layer [Shape] [Via] [Obstacle]
-  deriving Show
+data Shape = Shape Rect
+           | Obstacle Rect
+           | Hline Rect
+           | Vline Rect
+           | Via Point
+           deriving (Eq, Ord, Show)
 
 data Problem = Problem
   { viaCost   :: Int
   , spacing   :: Int
   , boundary  :: Rect
   , metalLayers :: Int
-  , routedShapes :: Map LayerN [Shape]
-  , routedVias   :: Map LayerN [Via]
-  , obstacles    :: Map LayerN [Obstacle]
+  , pelements :: [(LayerN, Shape)]
+  , pvias :: [(LayerN, Shape)]
   }
   deriving Show
 
 next (LayerN i) = LayerN (i+1)
 
-getLayer :: Problem -> LayerN -> Layer
-getLayer p l@(LayerN i) =
-  Layer (f l $ routedShapes p)
-        ((f l $ routedVias p) ++ (f (next l) $ routedVias p))
-        (f l $ obstacles p)
-  where f ln = findWithDefault [] ln
+groupLayers :: Ord a
+            => [(LayerN, a)]
+            -> [(LayerN, [a])]
+groupLayers es = catMaybes $ L.map tagG groups
+  where
+    groups = L.groupBy (\a b -> fst a == fst b) $ L.sort es
+    tagG :: [(LayerN, a)] -> Maybe (LayerN, [a])
+    tagG []           = Nothing
+    tagG ((ln, e):rs) = Just (ln, e:L.map snd rs)
 
 
-splitLayers :: Problem -> [(LayerN, Layer)]
-splitLayers p =
-  L.map
-    (\ln -> (ln, getLayer p ln) )
-    [LayerN i | i <- [1..metalLayers p]]
+stackVias :: [(LayerN, Shape)] -> [(LayerN, Shape)]
+stackVias vs = vs ++ (L.map (first next) vs)
+
+
+groupEverything :: [(LayerN, Shape)]
+                -> [(LayerN, Shape)]
+                -> [(LayerN, [Shape])]
+groupEverything es vs =
+  groupLayers (es ++ stackVias vs)
+
 
 data Solution = Solution
-  { vlines :: [Shape]
-  , hlines :: [Shape]
-  , vias :: [Via]
+  { selements :: [(LayerN, Shape)]
+  , svias :: [(LayerN, Shape)]
+  , sMetalLayers :: Int
   }
+
+
