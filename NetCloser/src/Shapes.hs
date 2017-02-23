@@ -23,9 +23,10 @@ newtype LayerN = LayerN Int
 
 data Shape = Shape Rect
            | Obstacle Rect
+           | Via Point
            | Hline Rect
            | Vline Rect
-           | Via Point
+           | AddedVia Point
            deriving (Eq, Ord, Show)
 
 data Problem = Problem

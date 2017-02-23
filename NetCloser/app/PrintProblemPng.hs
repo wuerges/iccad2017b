@@ -15,5 +15,5 @@ main = do
   file <- B.readFile input
   case parseOnly parseProblem file of
     Left e -> putStrLn e
-    Right p -> drawProblem p prefix
+    Right p -> drawProblem p Nothing prefix
 

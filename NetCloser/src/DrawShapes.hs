@@ -5,6 +5,7 @@ import Shapes
 import Codec.Picture( PixelRGBA8( .. ), writePng )
 import Graphics.Rasterific
 import Graphics.Rasterific.Texture
+import Data.Maybe
 
 
 --fi :: Int -> Float
@@ -30,6 +31,11 @@ drawShape (Via (P (x, y))) =
    in withTexture (uniformTexture color) $
      fill $ circle (V2 (fi x) (fi y)) 5
 
+drawShape (AddedVia (P (x, y))) =
+  let color = PixelRGBA8 0xff 0xff 0 255
+   in withTexture (uniformTexture color) $
+     fill $ circle (V2 (fi x) (fi y)) 5
+
 drawShape _ = error "Unimplemented"
 
 drawLayer boundary shapes =
@@ -39,13 +45,13 @@ drawLayer boundary shapes =
         mapM_ drawShape shapes
    in img
 
-drawProblem :: Problem -> String -> IO ()
-drawProblem p filename_prefix =
-  let mkName n = filename_prefix ++ "_" ++ show n ++ ".png"
+drawProblem :: Problem -> Maybe Solution -> String -> IO ()
+drawProblem p ms filename_prefix =
+  let mkName n = filename_prefix ++ "_problem_" ++ show n ++ ".png"
       drawL :: (LayerN, [Shape]) -> IO ()
       drawL (LayerN ln, l) = writePng (mkName ln) $ drawLayer (boundary p)  l
-   in mapM_ drawL (groupEverything (pelements p) (pvias p))
+   in do
+     mapM_ drawL (groupEverything (pelements p) (pvias p))
+     flip (maybe (return ())) ms $ \s ->
+       mapM_ drawL (groupEverything (selements s) (svias s))
 
-
---drawSolution :: Solution -> String -> IO ()
---drawSolution
