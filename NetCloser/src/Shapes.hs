@@ -69,4 +69,34 @@ data Solution = Solution
   , sMetalLayers :: Int
   }
 
+exampleProblem = Problem
+  { viaCost = 20
+  , spacing = 5
+  , boundary = R (P (0,0)) (P (1000,1000))
+  , metalLayers = 2
+  , pelements = [ (LayerN 1, Shape (R (P (50,100)) (P (250,150))))
+                , (LayerN 1, Shape (R (P (600,20)) (P (750,140))))
+                , (LayerN 1, Shape (R (P (50,850)) (P (250,900))))
+                , (LayerN 1, Shape (R (P (10,800)) (P (500,995))))
+                , (LayerN 2, Shape (R (P (75,20)) (P (200,750))))
+                , (LayerN 2, Shape (R (P (375,100)) (P (575,600))))
+                , (LayerN 2, Shape (R (P (475,20)) (P (670,450))))
+                , (LayerN 1, Obstacle (R (P (350,300)) (P (650,750))))
+                , (LayerN 1, Obstacle (R (P (50,350)) (P (650,650))))
+                , (LayerN 2, Obstacle (R (P (350,700)) (P (950,800))))
+                ]
+  , pvias = [ (LayerN 1, Via (P (175,125))) ]
+  }
 
+
+
+exampleSolution = Solution
+  { selements = [ (LayerN 1, Vline $ R (P (700, 140)) (P (700, 550) ))
+                , (LayerN 2, Hline $ R (P (575, 550)) (P (700, 550) ))
+                , (LayerN 1, Hline $ R (P (500, 850)) (P (700, 850) ))
+                , (LayerN 1, Vline $ R (P (700, 550)) (P (700, 850) ))
+                , (LayerN 2, Hline $ R (P (200, 150)) (P (375, 150) ))
+                ]
+  , svias = [ (LayerN 1, AddedVia $ P (700, 550)) ]
+  , sMetalLayers = 2
+  }
