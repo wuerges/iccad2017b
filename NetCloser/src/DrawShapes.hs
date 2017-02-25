@@ -1,5 +1,6 @@
 module DrawShapes where
 
+import Geometry
 import Shapes
 
 import Codec.Picture( PixelRGBA8( .. ), writePng )

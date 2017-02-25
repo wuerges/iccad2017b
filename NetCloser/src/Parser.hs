@@ -2,6 +2,7 @@
 
 module Parser ( parseProblem ) where
 
+import Geometry
 import Shapes
 
 import Data.Attoparsec.ByteString.Char8 as AP

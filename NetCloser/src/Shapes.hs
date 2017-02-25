@@ -2,6 +2,7 @@
 
 module Shapes where
 
+import Geometry
 
 import Data.ByteString
 import Data.List as L
@@ -9,11 +10,6 @@ import Control.Arrow
 import Data.Maybe
 
 -- Data types for input
-
-data Point = P (Int, Int)
-  deriving (Eq, Ord, Show)
-data Rect = R Point Point
-  deriving (Eq, Ord, Show)
 
 origin = P (0, 0)
 dummyR = R origin origin
