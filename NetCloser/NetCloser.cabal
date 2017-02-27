@@ -21,13 +21,15 @@ library
                     , Parser
                     , DrawShapes
                     , Hanan
+                    , Kruskal
   build-depends:       base >= 4.7 && < 5
                     , attoparsec >= 0.13 && < 0.14
                     , bytestring
                     , Rasterific >= 0.7 && < 0.8
                     , JuicyPixels >= 3.2 && < 3.3
                     , containers >= 0.5 && < 0.6
-                    , union-find >= 0.2 && < 0.3
+                    , equivalence >= 0.3.2 && < 0.4
+                    , mtl >= 2.2.1 && < 2.3
   default-language:    Haskell2010
 
 executable PrintProblemPng-exe
