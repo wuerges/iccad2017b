@@ -1,4 +1,4 @@
-module Kruskal where
+module Kruskal ( runKruskallMST ) where
 
 import Geometry
 
@@ -30,9 +30,9 @@ kruskalMST start = do
   mapM_ step start
   get
 
-
 runKruskallMST :: [[Point3D]] -> [Edge] -> [Edge]
 runKruskallMST ps es = runEquivM' $ flip execStateT [] $ do
   kruskalMSTInit ps
   kruskalMST es
+
 
