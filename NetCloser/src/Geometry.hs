@@ -26,3 +26,6 @@ data Point3D = P3 { x :: Int, y ::  Int, z :: Int }
    -}
 data Rect = R Point Point
   deriving (Eq, Ord, Show)
+
+distance (P3 x y z, P3 x' y' z') =
+  abs (x - x') + abs (y - y') + abs (z - z')
