@@ -7,6 +7,7 @@ import Data.List as L
 import qualified Data.Map as M
 import Debug.Trace
 
+{-
 segments3d _ (LayerN l
   , Shape (R (P (x, y)) (P (x', y')))) =
     [ (P3 x y l, P3 x y' l)
@@ -18,33 +19,14 @@ segments3d _ (_, Obstacle _) = []
 
 segments3d p (LayerN l, Via (P (x, y))) =
   [ (P3 x y (l * spacing p), P3 x y ((l+1) * spacing p)) ]
+-}
+points3dR3 (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) =
+  [ P3 x y z |
+    x <- L.nub [x1, x2]
+  , y <- L.nub [y1, y2]
+  , z <- L.nub [z1, z2] ]
 
-points3dShape _ (LayerN l
-  , Shape (R (P (x, y)) (P (x', y')))) =
-  [ P3 x y l
-  , P3 x y' l
-  , P3 x' y l
-  , P3 x' y' l ]
-
-points3dShape p (LayerN l, Via (P (x, y))) =
-  [ P3 x y l
-  , P3 x y (l+1) ]
-
-
-points3dShape p (LayerN l
-                , Obstacle
-                          (R (P (x, y)) (P (x', y')))) =
-                            [ P3 ox  oy  l
-                            , P3 ox  oy' l
-                            , P3 ox' oy  l
-                            , P3 ox' oy' l ]
-                              where s = spacing p
-                                    ox = x - s
-                                    oy = y - s
-                                    ox' = x' + s
-                                    oy' = y' + s
-
-points3dShape _ _            = error "This function should not be used here"
+points3dShape p = rmdups . points3dR3 . make3D p
 
 hananSegs :: [Point3D] -> [(Point3D, Point3D)]
 hananSegs ps = xsegs ++ ysegs ++ zsegs
@@ -89,7 +71,7 @@ hananPs ps =
 
 
 points3d :: Problem -> [Point3D]
-points3d p = map (setViaCost (viaCost p)) ps
+points3d p = ps -- map (setViaCost (viaCost p)) ps
   where
     ps = concatMap (points3dShape p) (pelements p ++ pvias p)
     setViaCost vc (P3 x y z) = (P3 x y (z * vc))
@@ -101,6 +83,9 @@ rmdups = L.map L.head . L.group . L.sort
 hanan =
   hananPs . points3d
 
+
+
+type Segment = (Point3D, Point3D)
 
 segmentToShape :: (Point3D, Point3D) -> (LayerN, Shape)
 
@@ -123,5 +108,27 @@ makeSolution pts p =
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
 
-hananSolution p = makeSolution (hananSegs . points3d $ p) p
+hananSolution p = makeSolution (filterObstacles p . hananSegs . points3d $ p) p
+
+  {-undefined
+inSolution p segs = segs
+  where
+  any (collides r)
+  -}
+
+
+filterObstacles p segs = filter collidesAnySeg segs
+  where obs = map ((flip resize) (-1) . make3D p) $ getObstacles p
+        collidesAny pt = any (flip collidesP pt) obs
+        collidesAnySeg (p1, p2) = not $ collidesAny p1 || collidesAny p2
+
+
+prepareProblem p = undefined
+  where
+    alwaysIn = map (make3D p) $ getShapes p ++ pvias p
+    obs = map (make3D p) $ getObstacles p
+
+
+
+
 

@@ -35,6 +35,15 @@ data Problem = Problem
   }
   deriving Show
 
+getObstacles p = L.filter isObstacle (pelements p)
+  where isObstacle (_, Obstacle _) = True
+        isObstacle _ = False
+
+getShapes p = L.filter isShape (pelements p)
+  where isShape (_, Shape _) = True
+        isShape _ = False
+
+
 next (LayerN i) = LayerN (i+1)
 
 groupLayers :: Ord a
@@ -85,7 +94,6 @@ exampleProblem = Problem
   }
 
 
-
 exampleSolution = Solution
   { selements = [ (LayerN 1, Vline $ R (P (700, 140)) (P (700, 550) ))
                 , (LayerN 2, Hline $ R (P (575, 550)) (P (700, 550) ))
@@ -96,3 +104,37 @@ exampleSolution = Solution
   , svias = [ (LayerN 1, AddedVia $ P (700, 550)) ]
   , sMetalLayers = 2
   }
+
+
+make3D p (LayerN l
+         , Shape (R (P (x, y)) (P (x', y')))) =
+           R3 { a = P3 x y (l * viaCost p)
+              , b = P3 x' y' (l * viaCost p) }
+
+make3D p (LayerN l
+         , Obstacle (R (P (x, y)) (P (x', y')))) =
+           R3 { a = P3 (min x x' - s) (min y y' - s) (l * vc)
+              , b = P3 (max x x' + s) (max y y' + s) (l * vc) }
+          where s = spacing p
+                vc = viaCost p
+
+make3D p (LayerN l
+         , Via (P (x, y))) =
+           R3 { a = P3 x y (l * vc)
+              , b = P3 x y ((l+1) * vc) }
+          where vc = viaCost p
+
+make3D p (l, Hline r) = make3D p (l, Shape r)
+make3D p (l, Vline r) = make3D p (l, Shape r)
+make3D p (l, AddedVia pt) = make3D p (l, Via pt)
+
+{-
+segments3d _ (LayerN l
+
+segments3d _ (_, Obstacle _) = []
+
+segments3d p (LayerN l, Via (P (x, y))) =
+  [ (P3 x y (l * spacing p), P3 x y ((l+1) * spacing p)) ]
+
+-}
+

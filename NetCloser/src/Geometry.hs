@@ -32,3 +32,24 @@ data Rect3D = R3 { a :: Point3D, b :: Point3D }
 distance (P3 x y z, P3 x' y' z') =
   abs (x - x') + abs (y - y') + abs (z - z')
 
+
+collidesP (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) (P3 px py pz) =
+  col2 z1 z2 pz && col2 x1 x2 px && col2 y1 y2 py
+  where
+    col1 a b c = a >= c && c >= b
+    col2 a b c = col1 a b c || col1 b a c
+
+collides r (R3 p1 p2) = collidesP r p1 || collidesP r p2
+
+
+resize (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) n =
+  R3 a b
+    where
+      minx = min x1 x2
+      miny = min y1 y2
+      maxx = max x1 x2
+      maxy = max y1 y2
+      a = P3 (minx-n) (miny-n) z1
+      b = P3 (maxx+n) (maxy+n) z1
+
+
