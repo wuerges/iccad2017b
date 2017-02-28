@@ -5,7 +5,9 @@ import Geometry
 import Shapes
 import Data.List as L
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Debug.Trace
+
 
 {-
 segments3d _ (LayerN l
@@ -34,13 +36,13 @@ segments (R3 (P3 x1 y1 z1) (P3 x2 y2 z2))
   | otherwise = [ (P3 x1 y1 z1, P3 x2 y2 z2) ]
 
 
-points3dShape p = rmdups . points3dR3 . make3D p
+points3dShape p = rmdup . points3dR3 . make3D p
 
 hananSegs :: [Point3D] -> [(Point3D, Point3D)]
 hananSegs ps = xsegs ++ ysegs ++ zsegs
- where xs = rmdups (map x ps)
-       ys = rmdups (map y ps)
-       zs = rmdups (map z ps)
+ where xs = rmdup (map x ps)
+       ys = rmdup (map y ps)
+       zs = rmdup (map z ps)
        segs es = zip es (tail es)
        xsegs =
          [(P3 px py pz, P3 px' py pz) |
@@ -73,20 +75,24 @@ hananPs ps =
     | px <- xs
   , py <- ys
   , pz <- zs ]
- where xs = rmdups (map x ps)
-       ys = rmdups (map y ps)
-       zs = rmdups (map z ps)
+ where xs = rmdup (map x ps)
+       ys = rmdup (map y ps)
+       zs = rmdup (map z ps)
 
 
 points3d :: Problem -> [Point3D]
-points3d p = ps -- map (setViaCost (viaCost p)) ps
-  where
-    ps = concatMap (points3dShape p) (pelements p ++ pvias p)
-    setViaCost vc (P3 x y z) = (P3 x y (z * vc))
+points3d p =
+    concatMap (points3dShape p) (pelements p ++ pvias p)
 
 
-rmdups :: Ord a => [a] -> [a]
-rmdups = L.map L.head . L.group . L.sort
+canonize (p1, p2) = (p1', p2')
+  where [p1', p2'] = L.sort [p1, p2]
+
+rmdup :: Ord a => [a] -> [a]
+rmdup = L.map L.head . L.group . L.sort
+
+rmdups :: [Segment] -> [Segment]
+rmdups = L.map L.head . L.group . L.sort . L.map canonize
 
 hanan =
   hananPs . points3d
@@ -118,19 +124,15 @@ makeSolution pts p =
 
 -- This is to eliminate obstacles
 --hananSolution p = makeSolution (filterObstacles p . hananSegs . points3d $ p) p
-hananSolution p = makeSolution (segs ++ vias) p
-  where segs = filterAlwaysIn p . hananSegs . points3d $ p
+hananSolution p = makeSolution todo p
+  where segs = filterAlwaysIn p $ candidates
         vias = concatMap segments $ getRoutedVias3D p
-
-  {-undefined
-inSolution p segs = segs
-  where
-  any (collides r)
-  -}
-
+        candidates = filterObstacles p . hananSegs . points3d $ p
+        startingSet = segs ++ vias
+        todo = S.toList $
+          S.fromList candidates `S.difference` S.fromList startingSet
 
 isVia (p1, p2) = z p1 /= z p2
-
 
 getRoutedVias3D p = map (make3D p) $ pvias p
 
