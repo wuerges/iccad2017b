@@ -26,6 +26,14 @@ points3dR3 (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) =
   , y <- L.nub [y1, y2]
   , z <- L.nub [z1, z2] ]
 
+segments (R3 (P3 x1 y1 z1) (P3 x2 y2 z2))
+  | z1 == z2 = rmdups $ [ (P3 x1 y1 z1, P3 x2 y1 z1)
+                        , (P3 x1 y1 z1, P3 x1 y2 z1)
+                        , (P3 x2 y2 z1, P3 x1 y2 z1)
+                        , (P3 x2 y2 z1, P3 x2 y1 z1) ]
+  | otherwise = [ (P3 x1 y1 z1, P3 x2 y2 z2) ]
+
+
 points3dShape p = rmdups . points3dR3 . make3D p
 
 hananSegs :: [Point3D] -> [(Point3D, Point3D)]
@@ -108,13 +116,28 @@ makeSolution pts p =
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
 
-hananSolution p = makeSolution (filterObstacles p . hananSegs . points3d $ p) p
+-- This is to eliminate obstacles
+--hananSolution p = makeSolution (filterObstacles p . hananSegs . points3d $ p) p
+hananSolution p = makeSolution (segs ++ vias) p
+  where segs = filterAlwaysIn p . hananSegs . points3d $ p
+        vias = concatMap segments $ getRoutedVias3D p
 
   {-undefined
 inSolution p segs = segs
   where
   any (collides r)
   -}
+
+
+isVia (p1, p2) = z p1 /= z p2
+
+
+getRoutedVias3D p = map (make3D p) $ pvias p
+
+filterAlwaysIn p segs = filter bothEndsInShape $ filter (not . isVia) segs
+  where ss = map (make3D p) $ getShapes p
+        bothEndsInShape (p1, p2) = isInAnyShape p1 && isInAnyShape p2
+        isInAnyShape pt = any (flip collidesP pt) ss
 
 
 filterObstacles p segs = filter collidesAnySeg segs
