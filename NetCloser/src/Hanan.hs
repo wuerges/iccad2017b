@@ -44,12 +44,39 @@ points3dShape p (LayerN l
 
 points3dShape _ _            = error "This function should not be used here"
 
+hananSegs :: [Point3D] -> [(Point3D, Point3D)]
+hananSegs ps = xsegs ++ ysegs ++ zsegs
+ where xs = rmdups (map x ps)
+       ys = rmdups (map y ps)
+       zs = rmdups (map z ps)
+       segs es = zip es (tail es)
+       xsegs =
+         [(P3 px py pz, P3 px' py pz) |
+           (px, px') <- segs xs
+         , py <- ys
+         , pz <- zs ]
+       ysegs =
+         [(P3 px py' pz, P3 px py' pz) |
+           (py, py') <- segs ys
+         , px <- xs
+         , pz <- zs ]
+       zsegs =
+         [(P3 px py pz, P3 px py pz') |
+           (pz, pz') <- segs zs
+         , px <- xs
+         , py <- ys ]
+
+
 hananPs :: [Point3D] -> [Point3D]
 hananPs ps =
   [ P3 px py pz
-    | px <- rmdups (map x ps)
-    , py <- rmdups (map y ps)
-    , pz <- rmdups (map z ps) ]
+    | px <- xs
+  , py <- ys
+  , pz <- zs ]
+ where xs = rmdups (map x ps)
+       ys = rmdups (map y ps)
+       zs = rmdups (map z ps)
+
 
 points3d :: Problem -> [Point3D]
 points3d p = map (setViaCost (viaCost p)) ps
