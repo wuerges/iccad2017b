@@ -101,5 +101,13 @@ hanan =
   hananPs . points3d
 
 
+segmentToShape :: (Point3D, Point3D) -> (LayerN, Shape)
+
+segmentToShape seg@(P3 x y z, P3 x' y' z')
+  | z == z' && x == x' = (LayerN z, Vline $ R (P (x, y)) (P (x', y')))
+  | z == z' && y == y' = (LayerN z, Hline $ R (P (x, y)) (P (x', y')))
+  | z /= z' && x == x' && y == y' = (LayerN (min z z'), AddedVia $ P (x, y))
+  | otherwise = error $ "This segment is not allowed: " ++ show seg
+
 
 
