@@ -4,6 +4,7 @@ module Hanan where
 import Geometry
 import Shapes
 import Data.List as L
+import qualified Data.Map as M
 
 segments3d _ (LayerN l
   , Shape (R (P (x, y)) (P (x', y')))) =
@@ -65,6 +66,14 @@ hananSegs ps = xsegs ++ ysegs ++ zsegs
            (pz, pz') <- segs zs
          , px <- xs
          , py <- ys ]
+
+
+hananMap :: [(Point3D, Point3D)] -> M.Map Point3D [(Point3D, Point3D)]
+hananMap ps = foldr ih M.empty ps
+  where
+    ih (seg@(p1, p2)) m =
+          M.insertWith (++) p2 [seg] $
+            M.insertWith (++) p1 [seg] m
 
 
 hananPs :: [Point3D] -> [Point3D]
