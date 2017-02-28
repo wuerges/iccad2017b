@@ -110,4 +110,13 @@ segmentToShape seg@(P3 x y z, P3 x' y' z')
   | otherwise = error $ "This segment is not allowed: " ++ show seg
 
 
+makeSolution :: [(Point3D, Point3D)] -> Int -> Solution
+makeSolution pts ls =
+  Solution { selements = [v | v <- segs, not (isVia v)]
+           , svias = [v | v <- segs, isVia v]
+           , sMetalLayers = ls }
+  where
+    segs = map segmentToShape pts
+    isVia (_, AddedVia _) = True
+    isVia (_, _) = False
 
