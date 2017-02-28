@@ -47,7 +47,9 @@ points3dShape _ _            = error "This function should not be used here"
 hananPs :: [Point3D] -> [Point3D]
 hananPs ps =
   [ P3 px py pz
-    | px <- map x ps, py <- map y ps, pz <- map z ps ]
+    | px <- rmdups (map x ps)
+    , py <- rmdups (map y ps)
+    , pz <- rmdups (map z ps) ]
 
 points3d :: Problem -> [Point3D]
 points3d p = map (setViaCost (viaCost p)) ps
@@ -55,10 +57,12 @@ points3d p = map (setViaCost (viaCost p)) ps
     ps = concatMap (points3dShape p) (pelements p ++ pvias p)
     setViaCost vc (P3 x y z) = (P3 x y (z * vc))
 
+
+rmdups :: Ord a => [a] -> [a]
 rmdups = L.map L.head . L.group . L.sort
 
 hanan =
-  rmdups . hananPs . points3d
+  hananPs . points3d
 
 
 

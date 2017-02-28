@@ -29,3 +29,4 @@ data Rect = R Point Point
 
 distance (P3 x y z, P3 x' y' z') =
   abs (x - x') + abs (y - y') + abs (z - z')
+
