@@ -5,6 +5,7 @@ import Geometry
 import Shapes
 import Data.List as L
 import qualified Data.Map as M
+import Debug.Trace
 
 segments3d _ (LayerN l
   , Shape (R (P (x, y)) (P (x', y')))) =
@@ -26,8 +27,8 @@ points3dShape _ (LayerN l
   , P3 x' y' l ]
 
 points3dShape p (LayerN l, Via (P (x, y))) =
-  [ P3 x y (l * spacing p)
-  , P3 x y ((l+1) * spacing p) ]
+  [ P3 x y l
+  , P3 x y (l+1) ]
 
 
 points3dShape p (LayerN l
@@ -57,7 +58,7 @@ hananSegs ps = xsegs ++ ysegs ++ zsegs
          , py <- ys
          , pz <- zs ]
        ysegs =
-         [(P3 px py' pz, P3 px py' pz) |
+         [(P3 px py pz, P3 px py' pz) |
            (py, py') <- segs ys
          , px <- xs
          , pz <- zs ]
@@ -110,13 +111,17 @@ segmentToShape seg@(P3 x y z, P3 x' y' z')
   | otherwise = error $ "This segment is not allowed: " ++ show seg
 
 
-makeSolution :: [(Point3D, Point3D)] -> Int -> Solution
-makeSolution pts ls =
-  Solution { selements = [v | v <- segs, not (isVia v)]
-           , svias = [v | v <- segs, isVia v]
-           , sMetalLayers = ls }
+makeSolution :: [(Point3D, Point3D)] -> Problem -> Solution
+makeSolution pts p =
+  Solution { selements = filter (not . isVia) segs
+           , svias = filter isVia segs
+           , sMetalLayers = metalLayers p }
   where
-    segs = map segmentToShape pts
+    vc = viaCost p
+    fixLayer (LayerN n, x) = (LayerN $ n `div` vc, x)
+    segs = map (fixLayer . segmentToShape) pts
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
+
+hananSolution p = makeSolution (hananSegs . points3d $ p) p
 
