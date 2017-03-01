@@ -62,7 +62,7 @@ hananSegs ps = xsegs ++ ysegs ++ zsegs
 
 
 hananMap :: [(Point3D, Point3D)] -> M.Map Point3D [(Point3D, Point3D)]
-hananMap ps = foldr ih M.empty ps
+hananMap ps = foldr ih M.empty $ rmdups ps
   where
     ih (seg@(p1, p2)) m =
           M.insertWith (++) p2 [seg] $
