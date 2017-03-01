@@ -22,6 +22,7 @@ library
                     , DrawShapes
                     , Hanan
                     , Kruskal
+                    , B1S
   build-depends:       base >= 4.7 && < 5
                     , attoparsec >= 0.13 && < 0.14
                     , bytestring

@@ -8,7 +8,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Debug.Trace
 
-
 {-
 segments3d _ (LayerN l
   , Shape (R (P (x, y)) (P (x', y')))) =
@@ -152,8 +151,6 @@ prepareProblem p = undefined
   where
     alwaysIn = map (make3D p) $ getShapes p ++ pvias p
     obs = map (make3D p) $ getObstacles p
-
-
 
 
 
