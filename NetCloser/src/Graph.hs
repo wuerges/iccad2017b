@@ -3,6 +3,7 @@ module Graph where
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.NodeMap
 import Data.Graph.Inductive.PatriciaTree
+import Debug.Trace
 
 import Hanan
 import Shapes
@@ -46,13 +47,23 @@ incorporateVias p g  =
       rects = map (make3D p) vias
 
 
+
 -- | inserts a segmemnt into the graph
 -- Creates new nodes if needed, otherwise
 -- use the ones already inside
-embedSeg (a, b) g = insEdge e g'
+embedSeg (a, b) g =
+  insMapEdge m (a, b, distance (a, b)) g'
+  where
+    g' = embedPt b $ embedPt a g
+    m = fromGraph g'
+
+        --(g', m', [na, nb]) = insMapNodes m [a, b] g
+
+embedPt p g
+  | gelem n g = g
+  | otherwise = insNode (n, l) g
   where m = fromGraph g
-        (g', m', [na, nb]) = insMapNodes m [a, b] g
-        e = (fst na, fst nb, distance (a, b))
+        (n, l) = mkNode_ m p
 
 
 -- | Initializes the Hanan grid
@@ -81,4 +92,23 @@ isInsideR r (n1, n2) g = r1 && r2
 representative r g =
   L.find (\(n, p) -> collidesP r p) $ labNodes g
 
+segmentsGraph g = catMaybes $ map segEdge $ edges g
+  where
+    segEdge (n1, n2) = case (lab g n1, lab g n2) of
+                         (Just a, Just b) -> Just (a, b)
+                         _ -> Nothing
+
+makeSolutionG :: Problem -> G -> Solution
+makeSolutionG p g = traceShow (L.length $ edges g, L.length segs) $
+  Solution
+    { selements = filter (not . isVia) shapes
+    , svias = filter isVia shapes
+    , sMetalLayers = metalLayers p }
+  where
+    vc = viaCost p
+    fixLayer (LayerN n, x) = (LayerN $ n `div` vc, x)
+    segs = segmentsGraph g
+    shapes =  map (fixLayer . segmentToShape) segs
+    isVia (_, AddedVia _) = True
+    isVia (_, _) = False
 
