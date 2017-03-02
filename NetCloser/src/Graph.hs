@@ -59,6 +59,7 @@ embedSeg (a, b) g =
 
         --(g', m', [na, nb]) = insMapNodes m [a, b] g
 
+-- | embeds a point in the graph
 embedPt p g
   | gelem n g = g
   | otherwise = insNode (n, l) g
@@ -69,9 +70,13 @@ embedPt p g
 -- | Initializes the Hanan grid
 -- without the obstacles
 initHanan :: Problem -> G
-initHanan p = foldr embedSeg empty candidates
+initHanan p = g'
+--foldr embedSeg empty candidates
   where
     candidates = filterObstacles p . hananSegs . points3d $ p
+    pts = concatMap (\(a, b) -> [a, b]) candidates
+    (g0, m0, _) = insMapNodes new pts empty
+    g' = insMapEdges m0 [(a, b, distance (a, b)) | (a, b) <- candidates] g0
 
 
 -- | Incorporates an edge into the graph
@@ -99,7 +104,7 @@ segmentsGraph g = catMaybes $ map segEdge $ edges g
                          _ -> Nothing
 
 makeSolutionG :: Problem -> G -> Solution
-makeSolutionG p g = traceShow (L.length $ edges g, L.length segs) $
+makeSolutionG p g = --traceShow (L.length $ edges g, L.length segs) $
   Solution
     { selements = filter (not . isVia) shapes
     , svias = filter isVia shapes
