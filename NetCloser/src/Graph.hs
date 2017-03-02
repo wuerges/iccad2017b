@@ -8,6 +8,7 @@ import Hanan
 import Shapes
 import Geometry
 import Data.Maybe
+import Data.List as L
 
 
 -- | The type G describes
@@ -75,5 +76,9 @@ isInsideR r (n1, n2) g = r1 && r2
         r1 = maybe False (\p -> collidesP r p) mp1
         r2 = maybe False (\p -> collidesP r p) mp2
 
+
+-- | gets a representative node for r in the  garph
+representative r g =
+  L.find (\(n, p) -> collidesP r p) $ labNodes g
 
 
