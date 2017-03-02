@@ -8,19 +8,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Debug.Trace
 
-{-
-segments3d _ (LayerN l
-  , Shape (R (P (x, y)) (P (x', y')))) =
-    [ (P3 x y l, P3 x y' l)
-    , (P3 x y l, P3 x' y l)
-    , (P3 x y' l, P3 x' y' l)
-    , (P3 x' y l, P3 x' y' l) ]
-
-segments3d _ (_, Obstacle _) = []
-
-segments3d p (LayerN l, Via (P (x, y))) =
-  [ (P3 x y (l * spacing p), P3 x y ((l+1) * spacing p)) ]
--}
 points3dR3 (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) =
   [ P3 x y z |
     x <- L.nub [x1, x2]
@@ -153,4 +140,19 @@ prepareProblem p = undefined
     obs = map (make3D p) $ getObstacles p
 
 
+account segs = rem
+  where
+    pts = L.concatMap (\(a, b) -> [a, b]) $ rmdups segs
+    count = M.fromListWith (+) (zip pts (repeat 1))
+    rempts = S.fromList $ L.map fst $ L.filter (\(p, c) -> c > 1) $ M.toList count
+    rem = L.filter (\(a, b) -> S.member a rempts && S.member b rempts) segs
 
+ {-
+
+trimm :: [Point3D] -> [Segment] -> [Segment]
+trimm pt segs = undefined
+  where pts = S.fromList pt
+        filter (\(a, b) -> S.member a pts && S.member a pts) segs
+
+
+  -}

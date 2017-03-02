@@ -74,6 +74,22 @@ data Solution = Solution
   , sMetalLayers :: Int
   }
 
+exampleProblem2 = Problem
+  { viaCost = 20
+  , spacing = 5
+  , boundary = R (P (0,0)) (P (1000,1000))
+  , metalLayers = 1
+  , pelements = [ (LayerN 1, Shape (R (P (50,100)) (P (250,150))))
+                , (LayerN 1, Shape (R (P (600,20)) (P (750,140))))
+                , (LayerN 1, Shape (R (P (50,850)) (P (250,900))))
+                , (LayerN 1, Shape (R (P (10,800)) (P (500,995))))
+                , (LayerN 1, Obstacle (R (P (350,300)) (P (650,750))))
+                , (LayerN 1, Obstacle (R (P (50,350)) (P (650,650))))
+                ]
+  , pvias = [ ]
+  }
+
+
 exampleProblem = Problem
   { viaCost = 20
   , spacing = 5
@@ -127,6 +143,7 @@ make3D p (LayerN l
 make3D p (l, Hline r) = make3D p (l, Shape r)
 make3D p (l, Vline r) = make3D p (l, Shape r)
 make3D p (l, AddedVia pt) = make3D p (l, Via pt)
+
 
 {-
 segments3d _ (LayerN l
