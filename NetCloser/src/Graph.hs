@@ -5,6 +5,7 @@ import Data.Graph.Inductive.Basic
 import Data.Graph.Inductive.NodeMap
 import Data.Graph.Inductive.PatriciaTree
 import Data.Graph.Inductive.Query.SP
+import Data.Graph.Inductive.Query.MST
 import Debug.Trace
 
 import Hanan
@@ -120,10 +121,15 @@ makeSolutionG p g = --traceShow (L.length $ edges g, L.length segs) $
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
 
-makeSimpleSolution p = makeSolutionG p g'
+makeSimpleSolution p = makeSolutionG p mst
   where g = incorporateShapes p $ incorporateVias p $ initHanan p
         rs = map fst $ representatives p g
         g' = inducedShortestPaths rs g
+        mst = subgraph mst_nodes g'
+        --mst = g'
+        mst_nodes :: [Node]
+        mst_nodes = map fst $ concatMap unLPath $ msTree g'
+        --mst_nodes = map fst $ unLPath $ head $ msTree g'
 
 
 representatives p g =
