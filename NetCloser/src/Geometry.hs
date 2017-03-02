@@ -41,6 +41,8 @@ collidesP (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) (P3 px py pz) =
 
 collides r (R3 p1 p2) = collidesP r p1 || collidesP r p2
 
+segmentInside r (p1, p2) = collidesP r p1 && collidesP r p2
+
 
 resize (R3 (P3 x1 y1 z1) (P3 x2 y2 z2)) n =
   R3 a b
