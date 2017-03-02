@@ -1,8 +1,10 @@
 module Graph where
 
 import Data.Graph.Inductive.Graph
+import Data.Graph.Inductive.Basic
 import Data.Graph.Inductive.NodeMap
 import Data.Graph.Inductive.PatriciaTree
+import Data.Graph.Inductive.Query.SP
 import Debug.Trace
 
 import Hanan
@@ -95,7 +97,7 @@ isInsideR r (n1, n2) g = r1 && r2
 
 
 -- | gets a representative node for r in the  garph
-representative r g =
+representative g r =
   L.find (\(n, p) -> collidesP r p) $ labNodes g
 
 segmentsGraph g = catMaybes $ map segEdge $ edges g
@@ -117,4 +119,24 @@ makeSolutionG p g = --traceShow (L.length $ edges g, L.length segs) $
     shapes =  map (fixLayer . segmentToShape) segs
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
+
+makeSimpleSolution p = makeSolutionG p g'
+  where g = incorporateShapes p $ incorporateVias p $ initHanan p
+        rs = map fst $ representatives p g
+        g' = inducedShortestPaths rs g
+
+
+representatives p g =
+  catMaybes $ map (representative g) shapes
+    where shapes = map (make3D p) $ getShapes p
+
+inducedShortestPaths :: [Node] -> G -> G
+inducedShortestPaths ns g = subgraph rs g'
+  where
+    g' = undir g
+    rps = rmdup [(min a b, max a b) | a <- ns, b <- ns, a /= b]
+    rs = rmdup $ concatMap sp' $ rps
+    sp' (a, b) = sp a b g'
+
+
 
