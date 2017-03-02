@@ -76,7 +76,8 @@ initHanan p = g'
     candidates = filterObstacles p . hananSegs . points3d $ p
     pts = concatMap (\(a, b) -> [a, b]) candidates
     (g0, m0, _) = insMapNodes new pts empty
-    g' = insMapEdges m0 [(a, b, distance (a, b)) | (a, b) <- candidates] g0
+    labeled_candidates = [(a, b, distance (a, b)) | (a, b) <- candidates]
+    g' = insMapEdges m0 labeled_candidates g0
 
 
 -- | Incorporates an edge into the graph
