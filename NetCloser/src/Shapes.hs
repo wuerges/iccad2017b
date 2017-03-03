@@ -109,6 +109,10 @@ exampleProblem = Problem
   , pvias = [ (LayerN 1, Via (P (175,125))) ]
   }
 
+exampleProblem3 = exampleProblem { viaCost = 100000 }
+exampleProblem4 =
+  exampleProblem3 { pelements = getShapes exampleProblem }
+
 
 exampleSolution = Solution
   { selements = [ (LayerN 1, Vline $ R (P (700, 140)) (P (700, 550) ))
@@ -152,15 +156,4 @@ make3D p (LayerN l
 make3D p (l, Hline r) = make3D p (l, Shape r)
 make3D p (l, Vline r) = make3D p (l, Shape r)
 make3D p (l, AddedVia pt) = make3D p (l, Via pt)
-
-
-{-
-segments3d _ (LayerN l
-
-segments3d _ (_, Obstacle _) = []
-
-segments3d p (LayerN l, Via (P (x, y))) =
-  [ (P3 x y (l * spacing p), P3 x y ((l+1) * spacing p)) ]
-
--}
 
