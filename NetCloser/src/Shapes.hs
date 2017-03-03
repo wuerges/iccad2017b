@@ -122,6 +122,15 @@ exampleSolution = Solution
   }
 
 
+elementCost (Hline r) = hipothenuse r
+elementCost (Vline r) = hipothenuse r
+
+solutionCost p s =
+  elementCostT + viaCostT
+  where
+    elementCostT = sum (L.map (elementCost . snd) (selements s))
+    viaCostT = viaCost p * L.length (svias s)
+
 make3D p (LayerN l
          , Shape (R (P (x, y)) (P (x', y')))) =
            R3 { a = P3 x y (l * viaCost p)

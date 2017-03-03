@@ -11,6 +11,7 @@ import Debug.Trace
 import Hanan
 import Shapes
 import Geometry
+import Kruskal
 import Data.Maybe
 import Data.List as L
 
@@ -22,6 +23,7 @@ import Data.List as L
 -- The cost is the distance between
 -- the nodes if the edge is not routed.
 type G = Gr Point3D Int
+type EdgeG = LEdge Int
 
 
 -- | Incorporates a shape into the Graph,
@@ -35,6 +37,7 @@ incorporate r g =
 -- problem into the graph.
 incorporateShapes :: Problem -> G -> G
 incorporateShapes p g =
+  --incorporate (rects !! 6) g
   foldr incorporate g rects
   where
     shapes = getShapes p
@@ -86,7 +89,7 @@ initHanan p = g'
 -- | Incorporates an edge into the graph
 incorporateEdge r (n1, n2) g
   | isInsideR r (n1, n2) g =
-    insEdge (n1, n2, 0) $ delEdge (n1, n2) g
+    insEdge (n1, n2, 0) $ delEdge (n2, n1) $ delEdge (n1, n2) g
   | otherwise = g
 
 -- | Checks if an edge is inside the rectangle
@@ -121,15 +124,22 @@ makeSolutionG p g = --traceShow (L.length $ edges g, L.length segs) $
     isVia (_, AddedVia _) = True
     isVia (_, _) = False
 
-makeSimpleSolution p = makeSolutionG p mst
+makeSimpleSolution p = makeSolutionG p $
+  removeZeroCost $ cleanup g''
   where g = incorporateShapes p $ incorporateVias p $ initHanan p
+        mst_nodes = rmdup $ concatMap (\(a, b, _) -> [a, b]) k
+        --g' = traceShow k $ subgraph mst_nodes g
         rs = map fst $ representatives p g
         g' = inducedShortestPaths rs g
-        mst = subgraph mst_nodes g'
+        k = runKruskalMST2 $ labEdges g'
+        g'' = insEdges k . insNodes (labNodes g) $ empty
+        --mst = subgraph mst_nodes g'
         --mst = g'
-        mst_nodes :: [Node]
-        mst_nodes = map fst $ concatMap unLPath $ msTree g'
+        --mst_nodes :: [Node]
+        --mst_nodes = map fst $ concatMap unLPath $ msTree g'
         --mst_nodes = map fst $ unLPath $ head $ msTree g'
+
+sumCostEdges = sum . map edgeLabel
 
 
 representatives p g =
@@ -145,4 +155,17 @@ inducedShortestPaths ns g = subgraph rs g'
     sp' (a, b) = sp a b g'
 
 
+removeZeroCost :: G -> G
+removeZeroCost g = g'
+  where
+    k = filter (\e -> edgeLabel e /= 0) $ labEdges g
+    g' = insEdges k . insNodes (labNodes g) $ empty
+
+
+cleanup g | order g == order g' = g
+          | otherwise  = cleanup g'
+  where
+    g' = nfilter (\n -> deg g n > 1) g
+--cleanup g = subgraph nrem g
+--  where nrem = [n | n <- nodes g, deg g n > 1]
 

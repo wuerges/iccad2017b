@@ -1,4 +1,4 @@
-module Kruskal ( runKruskalMST ) where
+module Kruskal ( runKruskalMST, runKruskalMST2 ) where
 
 import Geometry
 
@@ -42,5 +42,30 @@ runKruskalMST :: [[Point3D]] -> [Edge] -> [Edge]
 runKruskalMST ps es = runEquivM' $ flip execStateT [] $ do
   kruskalMSTInit ps
   kruskalMST (L.sortOn distance es)
+
+
+type Kruskal2 t a = StateT [EdgeG] (EquivM' t Int) a
+type EdgeG = (Int, Int, Int)
+
+step2 :: EdgeG -> Kruskal2 t ()
+step2 (p1, p2, c) = do
+  when (c == 0) $ do
+    equate p1 p2
+    modify ((p1, p2, c):)
+  b <- equivalent p1 p2
+  unless  b $ do
+    equate p1 p2
+    modify ((p1, p2, c):)
+
+
+runKruskalMST2 :: [EdgeG] -> [EdgeG]
+runKruskalMST2 es =
+  runEquivM' $ flip execStateT [] $ do
+    mapM step2 es'
+    get
+  where cost (_, _, c) = c
+        es' = L.sortOn cost es
+
+
 
 

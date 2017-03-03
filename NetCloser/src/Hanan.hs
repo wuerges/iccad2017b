@@ -147,12 +147,10 @@ account segs = rem
     rempts = S.fromList $ L.map fst $ L.filter (\(p, c) -> c > 1) $ M.toList count
     rem = L.filter (\(a, b) -> S.member a rempts && S.member b rempts) segs
 
- {-
 
-trimm :: [Point3D] -> [Segment] -> [Segment]
-trimm pt segs = undefined
-  where pts = S.fromList pt
-        filter (\(a, b) -> S.member a pts && S.member a pts) segs
-
-
-  -}
+hannanPointsShapes p = shapePts
+  where
+    hp = hanan p
+    shapes = map (make3D p) (getShapes p)
+    getShapePoints r = filter (collidesP r) hp
+    shapePts = map getShapePoints shapes
