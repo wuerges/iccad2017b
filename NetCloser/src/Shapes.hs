@@ -169,7 +169,7 @@ showShape (LayerN l, Hline r) =
   "H-line M" ++ show l ++ " " ++ showRect r
 
 showShape (LayerN l, AddedVia p) =
-  "Via V" ++ show l ++ showPt p
+  "Via V" ++ show l ++ " " ++ showPt p
 
 instance Show Solution where
   show (Solution els vs mn) = L.concat $ L.intersperse "\n" $ L.map showShape (els ++ vs)

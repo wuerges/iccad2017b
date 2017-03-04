@@ -45,10 +45,10 @@ executable PrintProblemPng-exe
                     , bytestring
   default-language:    Haskell2010
 
-executable NetCloser-exe
+executable net_open_finder
   hs-source-dirs:      app
   main-is:             NetCloser.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -O2 
   build-depends:       base
                      , NetCloser
                     , attoparsec >= 0.13 && < 0.14
