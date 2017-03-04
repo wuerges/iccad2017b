@@ -157,3 +157,19 @@ make3D p (l, Hline r) = make3D p (l, Shape r)
 make3D p (l, Vline r) = make3D p (l, Shape r)
 make3D p (l, AddedVia pt) = make3D p (l, Via pt)
 
+
+showRect (R p1 p2) = showPt p1 ++ " " ++ showPt p2
+showPt (P (x, y)) = "(" ++ show x ++ "," ++ show y ++ ")"
+
+
+showShape (LayerN l, Vline r) =
+  "V-line M" ++ show l ++ " " ++ showRect r
+
+showShape (LayerN l, Hline r) =
+  "H-line M" ++ show l ++ " " ++ showRect r
+
+showShape (LayerN l, AddedVia p) =
+  "Via V" ++ show l ++ showPt p
+
+instance Show Solution where
+  show (Solution els vs mn) = L.concat $ L.intersperse "\n" $ L.map showShape (els ++ vs)
